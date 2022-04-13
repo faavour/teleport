@@ -1,0 +1,38 @@
+- hosts: bastion
+  become: true
+  tasks:
+
+    - name: Ensures App Dir Exists
+      file: path=/home/app state=directory
+   
+    - name: Install Teleport on a Linux host
+      shell:
+        cmd: |
+          sudo curl https://deb.releases.teleport.dev/teleport-pubkey.asc \
+          -o /usr/share/keyrings/teleport-archive-keyring.asc
+          echo "deb [signed-by=/usr/share/keyrings/teleport-archive-keyring.asc] https://deb.releases.teleport.dev/ stable main" \
+          | sudo tee /etc/apt/sources.list.d/teleport.list > /dev/null
+          sudo apt-get update
+          sudo apt-get install teleport
+
+    - name: Configure Teleport
+      shell:
+        cmd: |
+          teleport configure --acme --acme-email=favourjohn862@gmail.com --cluster-name=teleport.favourudoh.xyz | \
+          sudo tee /etc/teleport.yaml > /dev/null
+
+    - service: name=teleport state=restarted
+
+    - name: Start teleport service
+      shell:  
+        cmd: sudo systemctl start teleport
+
+    - name: Create a Teleport user and set up two-factor authentication
+      shell:
+        cmd: |
+          tctl users add teleport-admin --roles=editor,access --logins=root,ubuntu,ec2-user
+      register: result
+    - debug: 
+        var: result.stdout_lines
+
+    

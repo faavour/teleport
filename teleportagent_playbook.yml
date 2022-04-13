@@ -1,0 +1,7 @@
+- hosts: agent
+  become: true
+  tasks:
+    - name: Install Teleport agent on the slave host
+      shell:
+        cmd: |
+          sudo bash -c "$(curl -fsSL https://teleport.favourudoh.xyz/scripts/255950d96e44d4d8dae5f20858d8df4e/install-node.sh)"
